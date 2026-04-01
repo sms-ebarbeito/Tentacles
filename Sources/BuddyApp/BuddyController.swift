@@ -45,9 +45,9 @@ class BuddyController: NSObject, NSWindowDelegate {
     private var bannerWindow: NSPanel?
 
     // Secuencias de animación
-    private let idleSequence: [CGRect] = Sprite.idle
-    private let alertSequence: [CGRect] = Sprite.alert + Sprite.crazy + Sprite.alert2 + Sprite.alert3 + Sprite.alert4
-    private let crazySequence: [CGRect] = Sprite.crazy
+    private let idleSequence: [SpriteFrame] = Sprite.idle
+    private let alertSequence: [SpriteFrame] = Sprite.alert + Sprite.crazy + Sprite.alert2 + Sprite.alert3 + Sprite.alert4
+    private let crazySequence: [SpriteFrame] = Sprite.crazy
 
     func start() {
         log("Buddy arrancó")
@@ -313,8 +313,8 @@ class BuddyController: NSObject, NSWindowDelegate {
         }
     }
 
-    private func setFrame(_ rect: CGRect) {
-        octopusView.setFrame(rect)
+    private func setFrame(_ frame: SpriteFrame) {
+        octopusView.setFrame(frame)
     }
 
     func triggerAlert(cycles: Int = 2) {

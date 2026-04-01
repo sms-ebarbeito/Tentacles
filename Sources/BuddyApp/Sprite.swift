@@ -1,101 +1,118 @@
 import CoreGraphics
 
+// Un frame del sprite sheet con su punto de anclaje del pie.
+// ax: offset x del pie desde el centro del rect (px del PNG, + = derecha)
+// ay: offset y del pie desde el borde inferior del rect (px del PNG, + = arriba)
+struct SpriteFrame {
+    let rect: CGRect
+    let ax: CGFloat
+    let ay: CGFloat
+
+    init(_ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat,
+         ax: CGFloat = 0, ay: CGFloat = 0) {
+        rect = CGRect(x: x, y: y, width: w, height: h)
+        self.ax = ax
+        self.ay = ay
+    }
+}
+
 enum Sprite {
-    // Ventana: suficientemente grande para el sprite más alto (crazy ~98px * 2x = 196px)
     static let displaySize = CGSize(width: 160, height: 200)
     static let scale: CGFloat = 1.5
 
-    // Coordenadas exactas en el PNG (y=0 = parte superior)
+    // El pie siempre se ancla a este y desde el fondo de la ventana (puntos de pantalla)
+    // = max(ay) * scale = 16 * 1.5 = 24
+    static let groundLevel: CGFloat = 24
 
-    // Idle: band_00, criatura de pie
-    static let idle: [CGRect] = [
-        CGRect(x: 2,  y: 11, width: 34, height: 56),
-        CGRect(x: 45, y: 11, width: 34, height: 56),
-        CGRect(x: 84, y: 11, width: 34, height: 56),
-        CGRect(x: 45, y: 11, width: 34, height: 56),
+    // Idle: band_00
+    static let idle: [SpriteFrame] = [
+        SpriteFrame( 2, 11, 34, 56, ax:  0, ay: 6),
+        SpriteFrame(45, 11, 34, 56, ax:  0, ay: 6),
+        SpriteFrame(84, 11, 34, 56, ax:  0, ay: 7),
+        SpriteFrame(45, 11, 34, 56, ax:  0, ay: 6),
     ]
 
-    // Alert: band_07 fila inferior, 16 frames con lengua
-    static let alert: [CGRect] = [
-        CGRect(x:   0, y: 613, width:  34, height:  51),
-        CGRect(x:  34, y: 609, width:  43, height:  55),
-        CGRect(x:  77, y: 608, width:  44, height:  56),
-        CGRect(x: 121, y: 621, width:  45, height:  43),
-        CGRect(x: 166, y: 632, width:  44, height:  32),
-        CGRect(x: 210, y: 631, width:  48, height:  33),
-        CGRect(x: 258, y: 623, width:  44, height:  41),
-        CGRect(x: 302, y: 622, width:  46, height:  42),
-        CGRect(x: 348, y: 613, width:  43, height:  51),
-        CGRect(x: 391, y: 596, width:  49, height:  68),
-        CGRect(x: 440, y: 592, width:  45, height:  72),
-        CGRect(x: 485, y: 634, width:  62, height:  30),
-        CGRect(x: 547, y: 639, width:  66, height:  25),
-        CGRect(x: 613, y: 634, width:  58, height:  30),
-        CGRect(x: 671, y: 563, width:  68, height: 101),
-        CGRect(x: 739, y: 563, width:  48, height: 101),
+    // Alert: band_07, 16 frames con lengua
+    static let alert: [SpriteFrame] = [
+        SpriteFrame(  0, 613,  34,  51, ax:  1, ay:  6),
+        SpriteFrame( 34, 609,  43,  55, ax:  5, ay:  6),
+        SpriteFrame( 77, 608,  44,  56, ax:  5, ay:  5),
+        SpriteFrame(121, 621,  45,  43, ax:  6, ay:  5),
+        SpriteFrame(166, 632,  44,  32, ax:  5, ay:  4),
+        SpriteFrame(210, 631,  48,  33, ax:  7, ay:  4),
+        SpriteFrame(258, 623,  44,  41, ax:  6, ay:  5),
+        SpriteFrame(302, 622,  46,  42, ax:  6, ay:  5),
+        SpriteFrame(348, 613,  43,  51, ax:  5, ay:  6),
+        SpriteFrame(391, 596,  49,  68, ax:  8, ay:  7),
+        SpriteFrame(440, 592,  45,  72, ax:  6, ay:  6),
+        SpriteFrame(485, 634,  62,  30, ax:  6, ay:  5),
+        SpriteFrame(547, 639,  66,  25, ax:  5, ay:  5),
+        SpriteFrame(613, 634,  58,  30, ax:  4, ay:  4),
+        SpriteFrame(671, 563,  68, 101, ax: -6, ay: 12),
+        SpriteFrame(739, 563,  48, 101, ax: -7, ay: 12),
     ]
 
     // Alert continuación: band_09 (10 frames)
-    static let alert2: [CGRect] = [
-        CGRect(x:   0, y: 771, width:  70, height:  92),
-        CGRect(x:  78, y: 765, width:  72, height:  98),
-        CGRect(x: 151, y: 808, width:  49, height:  55),
-        CGRect(x: 200, y: 828, width:  50, height:  35),
-        CGRect(x: 250, y: 841, width:  70, height:  22),
-        CGRect(x: 320, y: 823, width:  80, height:  40),
-        CGRect(x: 410, y: 800, width:  90, height:  63),
-        CGRect(x: 500, y: 798, width:  80, height:  65),
-        CGRect(x: 580, y: 822, width:  90, height:  41),
-        CGRect(x: 670, y: 830, width:  80, height:  33),
+    static let alert2: [SpriteFrame] = [
+        SpriteFrame(  0, 771,  70,  92, ax:  4, ay: 15),
+        SpriteFrame( 78, 765,  72,  98, ax:  2, ay: 16),
+        SpriteFrame(151, 808,  49,  55, ax: -5, ay:  6),
+        SpriteFrame(200, 828,  50,  35, ax: -2, ay:  5),
+        SpriteFrame(250, 841,  70,  22, ax:  4, ay:  4),
+        SpriteFrame(320, 823,  80,  40, ax: 10, ay:  6),
+        SpriteFrame(410, 800,  90,  63, ax: 19, ay:  6),
+        SpriteFrame(500, 798,  80,  65, ax: 10, ay:  7),
+        SpriteFrame(580, 822,  90,  41, ax:  7, ay:  5),
+        SpriteFrame(670, 830,  80,  33, ax:  1, ay:  4),
     ]
 
     // Alert continuación: band_10 (14 frames)
-    static let alert3: [CGRect] = [
-        CGRect(x:   2, y: 920, width:  71, height:  30),
-        CGRect(x:  85, y: 926, width:  73, height:  24),
-        CGRect(x: 169, y: 909, width:  49, height:  41),
-        CGRect(x: 230, y: 878, width:  33, height:  72),
-        CGRect(x: 275, y: 914, width:  39, height:  36),
-        CGRect(x: 327, y: 917, width:  43, height:  33),
-        CGRect(x: 380, y: 914, width:  39, height:  36),
-        CGRect(x: 429, y: 894, width:  33, height:  56),
-        CGRect(x: 472, y: 899, width:  32, height:  51),
-        CGRect(x: 514, y: 919, width:  34, height:  31),
-        CGRect(x: 558, y: 921, width:  36, height:  29),
-        CGRect(x: 606, y: 920, width:  41, height:  30),
-        CGRect(x: 659, y: 919, width:  45, height:  31),
-        CGRect(x: 718, y: 915, width:  52, height:  35),
+    static let alert3: [SpriteFrame] = [
+        SpriteFrame(  2, 920,  71,  30, ax:  1, ay:  4),
+        SpriteFrame( 85, 926,  73,  24, ax:  1, ay:  5),
+        SpriteFrame(169, 909,  49,  41, ax:  0, ay: 10),
+        SpriteFrame(230, 878,  33,  72, ax:  0, ay:  6),
+        SpriteFrame(275, 914,  39,  36, ax:  0, ay:  5),
+        SpriteFrame(327, 917,  43,  33, ax: -2, ay:  5),
+        SpriteFrame(380, 914,  39,  36, ax: -1, ay:  5),
+        SpriteFrame(429, 894,  33,  56, ax:  0, ay:  7),
+        SpriteFrame(472, 899,  32,  51, ax:  0, ay:  6),
+        SpriteFrame(514, 919,  34,  31, ax:  0, ay:  4),
+        SpriteFrame(558, 921,  36,  29, ax:  0, ay:  4),
+        SpriteFrame(606, 920,  41,  30, ax:  0, ay:  4),
+        SpriteFrame(659, 919,  45,  31, ax:  0, ay:  5),
+        SpriteFrame(718, 915,  52,  35, ax:  0, ay:  4),
     ]
 
     // Alert continuación: band_11 (10 frames)
-    static let alert4: [CGRect] = [
-        CGRect(x:   1, y:1019, width:  64, height:  32),
-        CGRect(x:  65, y:1016, width:  73, height:  35),
-        CGRect(x: 138, y:1017, width:  79, height:  34),
-        CGRect(x: 217, y:1005, width:  89, height:  46),
-        CGRect(x: 306, y:1019, width:  88, height:  32),
-        CGRect(x: 394, y:1017, width:  82, height:  34),
-        CGRect(x: 476, y:1018, width:  85, height:  33),
-        CGRect(x: 561, y:1019, width:  88, height:  32),
-        CGRect(x: 649, y:1010, width:  84, height:  41),
-        CGRect(x: 733, y:1000, width:  65, height:  51),
+    static let alert4: [SpriteFrame] = [
+        SpriteFrame(  1, 1019,  64,  32, ax: -3, ay:  4),
+        SpriteFrame( 65, 1016,  73,  35, ax:  0, ay:  5),
+        SpriteFrame(138, 1017,  79,  34, ax: -3, ay:  4),
+        SpriteFrame(217, 1005,  89,  46, ax: -2, ay:  3),
+        SpriteFrame(306, 1019,  88,  32, ax: -3, ay:  5),
+        SpriteFrame(394, 1017,  82,  34, ax:  0, ay:  6),
+        SpriteFrame(476, 1018,  85,  33, ax:  2, ay:  5),
+        SpriteFrame(561, 1019,  88,  32, ax: -2, ay:  5),
+        SpriteFrame(649, 1010,  84,  41, ax: -3, ay:  5),
+        SpriteFrame(733, 1000,  65,  51, ax:  0, ay:  6),
     ]
 
-    // Squish: band_04, aplastado
+    // Crazy: band_08 (11 frames)
+    static let crazy: [SpriteFrame] = [
+        SpriteFrame(  2, 664,  40,  97, ax:  0, ay: 14),
+        SpriteFrame( 52, 664,  45,  97, ax:  1, ay: 10),
+        SpriteFrame(108, 664,  43,  97, ax: -4, ay:  8),
+        SpriteFrame(164, 664,  40,  97, ax: -1, ay: 11),
+        SpriteFrame(221, 664,  85,  97, ax:-12, ay: 14),
+        SpriteFrame(322, 664,  80,  97, ax:-10, ay: 15),
+        SpriteFrame(425, 664,  44,  97, ax:  0, ay: 14),
+        SpriteFrame(480, 664,  50,  97, ax:  0, ay:  9),
+        SpriteFrame(539, 664,  36,  97, ax:  1, ay: 11),
+        SpriteFrame(587, 664,  35,  97, ax: -1, ay: 14),
+        SpriteFrame(643, 664,  36,  97, ax:  0, ay: 14),
+    ]
+
+    // Squish: band_04 (no usado en animaciones)
     static let squish = CGRect(x: 2, y: 315, width: 23, height: 17)
-
-    // Crazy: band_08, animación completa (11 frames)
-    static let crazy: [CGRect] = [
-        CGRect(x: 2,   y: 664, width: 40, height: 97),
-        CGRect(x: 52,  y: 664, width: 45, height: 97),
-        CGRect(x: 108, y: 664, width: 43, height: 97),
-        CGRect(x: 164, y: 664, width: 40, height: 97),
-        CGRect(x: 221, y: 664, width: 85, height: 97),
-        CGRect(x: 322, y: 664, width: 80, height: 97),
-        CGRect(x: 425, y: 664, width: 44, height: 97),
-        CGRect(x: 480, y: 664, width: 50, height: 97),
-        CGRect(x: 539, y: 664, width: 36, height: 97),
-        CGRect(x: 587, y: 664, width: 35, height: 97),
-        CGRect(x: 643, y: 664, width: 36, height: 97),
-    ]
 }

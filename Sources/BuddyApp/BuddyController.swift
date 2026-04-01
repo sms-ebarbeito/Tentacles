@@ -41,16 +41,14 @@ class BuddyController: NSObject {
     private var bannerWindow: NSPanel?
 
     // Secuencias de animación
-    private let idleSequence: [[String]] = [
-        Sprite.idle0, Sprite.idle0,
-        Sprite.idle1, Sprite.idle1,
+    private let idleSequence: [CGRect] = Sprite.idle
+    private let alertSequence: [CGRect] = [
+        Sprite.alert[0], Sprite.alert[1],
+        Sprite.alert[0], Sprite.squish,
+        Sprite.alert[1], Sprite.alert[0],
+        Sprite.alert[2], Sprite.squish,
     ]
-    private let alertSequence: [[String]] = [
-        Sprite.alert0, Sprite.alert1,
-        Sprite.alert0, Sprite.squish,
-        Sprite.alert1, Sprite.alert0,
-        Sprite.alert1, Sprite.squish,
-    ]
+    private let crazySequence: [CGRect] = Sprite.crazy
 
     func start() {
         log("Buddy arrancó")
@@ -66,7 +64,7 @@ class BuddyController: NSObject {
     // MARK: - Construcción de ventanas
 
     private func buildOctopusWindow() {
-        let size = Sprite.size
+        let size = Sprite.displaySize
         octopusView = OctopusView(controller: self)
 
         octopusWindow = NSPanel(
@@ -293,10 +291,13 @@ class BuddyController: NSObject {
     }
 
     private func stepAnimation() {
-        if isAlertMode {
+        if crazyMode {
+            animFrame = (animFrame + 1) % crazySequence.count
+            setFrame(crazySequence[animFrame])
+        } else if isAlertMode {
             animFrame = (animFrame + 1) % alertSequence.count
             if animFrame == 0 { alertCycles += 1 }
-            if !crazyMode && alertCycles >= alertCyclesTarget {
+            if alertCycles >= alertCyclesTarget {
                 isAlertMode = false
                 alertCycles = 0
                 animTimer?.invalidate()
@@ -311,9 +312,8 @@ class BuddyController: NSObject {
         }
     }
 
-    private func setFrame(_ pixels: [String]) {
-        octopusView.frame_pixels = pixels
-        octopusView.needsDisplay = true
+    private func setFrame(_ rect: CGRect) {
+        octopusView.setFrame(rect)
     }
 
     func triggerAlert(cycles: Int = 2) {
@@ -340,9 +340,10 @@ class BuddyController: NSObject {
     }
 
     func stopCrazy() {
-        guard crazyMode else { return }
+        guard crazyMode || isAlertMode else { return }
         crazyMode = false
         isAlertMode = false
+        alertCycles = 0
         animTimer?.invalidate()
         startAnimation()
     }

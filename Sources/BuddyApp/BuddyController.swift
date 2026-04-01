@@ -42,12 +42,7 @@ class BuddyController: NSObject {
 
     // Secuencias de animación
     private let idleSequence: [CGRect] = Sprite.idle
-    private let alertSequence: [CGRect] = [
-        Sprite.alert[0], Sprite.alert[1],
-        Sprite.alert[0], Sprite.squish,
-        Sprite.alert[1], Sprite.alert[0],
-        Sprite.alert[2], Sprite.squish,
-    ]
+    private let alertSequence: [CGRect] = Sprite.alert + Sprite.crazy + Sprite.alert2 + Sprite.alert3 + Sprite.alert4
     private let crazySequence: [CGRect] = Sprite.crazy
 
     func start() {

@@ -1,90 +1,43 @@
-import Cocoa
+import CoreGraphics
 
 enum Sprite {
-    static let pixelSize: CGFloat = 5
+    // Ventana: suficientemente grande para el sprite más alto (crazy ~98px * 2x = 196px)
+    static let displaySize = CGSize(width: 160, height: 200)
+    static let scale: CGFloat = 1.5
 
-    // Paleta de colores retro
-    static let palette: [Character: NSColor] = [
-        ".": .clear,
-        "B": NSColor(red: 0.58, green: 0.18, blue: 0.78, alpha: 1.0),  // cuerpo violeta
-        "D": NSColor(red: 0.28, green: 0.04, blue: 0.42, alpha: 1.0),  // contorno oscuro
-        "E": NSColor(red: 0.96, green: 0.94, blue: 1.00, alpha: 1.0),  // ojo blanco
-        "P": NSColor(red: 0.10, green: 0.02, blue: 0.18, alpha: 1.0),  // pupila
+    // Coordenadas exactas en el PNG (y=0 = parte superior)
+
+    // Idle: band_00, criatura de pie
+    static let idle: [CGRect] = [
+        CGRect(x: 2,  y: 11, width: 34, height: 56),
+        CGRect(x: 45, y: 11, width: 34, height: 56),
+        CGRect(x: 84, y: 11, width: 34, height: 56),
+        CGRect(x: 45, y: 11, width: 34, height: 56),
     ]
 
-    // Idle: tentáculos abajo
-    static let idle0: [String] = [
-        "..DDDDDD..",
-        ".DBBBBBBD.",
-        ".DBEPEPBD.",
-        ".DBBBBBBD.",
-        ".DBBBBBBD.",
-        "..DDDDDD..",
-        ".D.DD.DD..",
-        "D...D..D..",
-        "D...D..D..",
-        ".D.....D..",
+    // Alert: band_12, brazos levantados (y=1082 da margen para la cabeza)
+    static let alert: [CGRect] = [
+        CGRect(x: 13,  y: 1082, width: 32, height: 72),
+        CGRect(x: 89,  y: 1082, width: 32, height: 72),
+        CGRect(x: 150, y: 1082, width: 32, height: 72),
+        CGRect(x: 192, y: 1082, width: 48, height: 72),
     ]
 
-    // Idle: tentáculos alternados (bob)
-    static let idle1: [String] = [
-        "..DDDDDD..",
-        ".DBBBBBBD.",
-        ".DBEPEPBD.",
-        ".DBBBBBBD.",
-        ".DBBBBBBD.",
-        "..DDDDDD..",
-        "D..DD.DD.D",
-        ".D..D..D..",
-        "..D.D..D..",
-        "...D....D.",
-    ]
+    // Squish: band_04, aplastado
+    static let squish = CGRect(x: 2, y: 315, width: 23, height: 17)
 
-    // Alert: ojos abiertos, salto (frame A)
-    static let alert0: [String] = [
-        "..DDDDDD..",
-        ".DBBBBBBD.",
-        ".DEPBBEPD.",
-        ".DBBBBBBD.",
-        ".DBBBBBBD.",
-        "..DDDDDD..",
-        "D..DD.DD.D",
-        ".D.....D..",
-        "D.......D.",
-        ".D.....D..",
+    // Crazy: band_08, animación completa (11 frames)
+    static let crazy: [CGRect] = [
+        CGRect(x: 2,   y: 664, width: 40, height: 97),
+        CGRect(x: 52,  y: 664, width: 45, height: 97),
+        CGRect(x: 108, y: 664, width: 43, height: 97),
+        CGRect(x: 164, y: 664, width: 40, height: 97),
+        CGRect(x: 221, y: 664, width: 85, height: 97),
+        CGRect(x: 322, y: 664, width: 80, height: 97),
+        CGRect(x: 425, y: 664, width: 44, height: 97),
+        CGRect(x: 480, y: 664, width: 50, height: 97),
+        CGRect(x: 539, y: 664, width: 36, height: 97),
+        CGRect(x: 587, y: 664, width: 35, height: 97),
+        CGRect(x: 643, y: 664, width: 36, height: 97),
     ]
-
-    // Alert: ojos abiertos (frame B)
-    static let alert1: [String] = [
-        "..DDDDDD..",
-        ".DBBBBBBD.",
-        ".DEPBBEPD.",
-        ".DBBBBBBD.",
-        ".DBBBBBBD.",
-        "..DDDDDD..",
-        ".D.DD.DD..",
-        "D...D..D..",
-        ".D..D..D..",
-        "..D....D..",
-    ]
-
-    // Squish: aplastado al caer
-    static let squish: [String] = [
-        "..DDDDDD..",
-        ".DBBBBBBD.",
-        ".DBBBBBBD.",
-        ".DEPBBEPD.",
-        ".DBBBBBBD.",
-        "..DDDDDD..",
-        "DD.DD.DDDD",
-        ".D......D.",
-        "..D....D..",
-        "...D..D...",
-    ]
-
-    static let cols = 10
-    static let rows = 10
-    static var size: CGSize {
-        CGSize(width: CGFloat(cols) * pixelSize, height: CGFloat(rows) * pixelSize)
-    }
 }

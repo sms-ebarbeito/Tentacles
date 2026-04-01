@@ -13,6 +13,9 @@ let package = Package(
             name: "BuddyApp",
             dependencies: ["BuddyCore"],
             path: "Sources/BuddyApp",
+            resources: [
+                .process("Resources"),
+            ],
             linkerSettings: [
                 .linkedFramework("Cocoa"),
             ]

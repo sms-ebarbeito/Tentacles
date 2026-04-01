@@ -1,1 +1,8 @@
 buddy
+.build/
+.DS_Store
+**/.DS_Store
+*.o
+*.d
+tentacles-sprites.gif
+tentacles-sprites.png

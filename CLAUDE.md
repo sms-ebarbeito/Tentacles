@@ -26,28 +26,65 @@ banda 8: y=664..761
 ...
 ```
 
-### 2. Renderizar una banda con líneas de corte
+### 2. Detectar sprites dentro de una banda
 
-Dado el número de banda, renderizarla a escala 4x con fondo blanco y líneas rojas marcando cada sprite:
+**Importante:** detectar siempre desde las **últimas filas** de la banda (base), no desde arriba. Algunos sprites tienen partes que sobresalen hacia arriba solapando la banda anterior, lo que confunde la detección.
 
 ```python
-# Detectar sprites (grupos de columnas con píxeles opacos)
-col_opaque = [sum(1 for y in range(band_y, band_y+band_h) if rows[y][x*4+3] > 5) for x in range(W)]
-sprites = []
-in_sprite = False
-for x in range(W):
-    if col_opaque[x] > 0 and not in_sprite:
-        sx = x; in_sprite = True
-    elif col_opaque[x] == 0 and in_sprite:
-        sprites.append((sx, x-1)); in_sprite = False
-
-# Renderizar a 4x con líneas rojas en los bordes de cada sprite
-# Guardar como /tmp/bandN.ppm y abrir con: qlmanage -t -s 3200 /tmp/bandN.ppm -o /tmp/ && open /tmp/bandN.ppm.png
+# Escanear las últimas 15 filas para encontrar gaps entre sprites
+col = [sum(1 for y in range(band_y+band_h-15, band_y+band_h) if rows[y][x*4+3] > 5) for x in range(W)]
 ```
 
-### 3. Preguntar al usuario qué frames usar
+**Casos especiales:**
+- **Sprites pegados sin gap** (col_opaque nunca llega a 0): usar grilla cada 10px y pedir al usuario que indique los cortes.
+- **Partes del cuerpo que sobresalen lateralmente** (como lenguas, brazos): la detección desde la base puede capturar un gap falso dentro del sprite. Hay que verificar en la zona media del sprite (~40% desde abajo) si hay contenido cruzando el gap.
+- **Ruido/saliva/destellos** (píxeles sueltos de 1-3px de ancho): filtrar grupos con `w < 10`.
 
-Mostrarle la imagen con los sprites numerados `[0]`, `[1]`, ... y preguntar cuáles quiere para la animación.
+### 3. Renderizar con grilla para cortes manuales
+
+Cuando la detección automática falla, renderizar con grilla azul cada 10px:
+
+```python
+# Grilla azul cada 10px
+for gx in range(0, W, 10):
+    for py in range(bh):
+        idx=(py*bw+gx*scale)*3
+        img[idx]=180; img[idx+1]=180; img[idx+2]=255
+```
+
+El usuario puede:
+- Indicar rangos de bandas: `sprite 1: bandas 1..6` → `x = banda*10 .. (banda_fin+1)*10 - 1`
+- Marcar líneas rojas directamente en la imagen y guardarla en `/tmp/`
+
+Para leer marcas rojas del usuario en la imagen (necesita ser gruesas, >3px):
+```python
+red_xs = set()
+for y in range(H):
+    for x in range(W):
+        r,g,b,a = rows[y][x*4:x*4+4]
+        if r > 150 and g < 100 and b < 100 and r > b+80:
+            red_xs.add(x)
+# Convertir: src_x = round(img_x * 800 / img_W)
+```
+
+### 4. Calcular y_top real por sprite
+
+Cada sprite puede tener diferente altura porque la banda anterior puede "sangrar" por arriba. Para cada sprite, buscar la última fila vacía antes del contenido continuo:
+
+```python
+def find_ytop(x0, x1, band_start, band_end):
+    last_empty = band_start
+    for y in range(band_start, band_end):
+        has = any(rows[y][x*4+3] > 5 for x in range(x0, x1+1))
+        if not has:
+            last_empty = y
+    return last_empty + 1
+# height = band_end - y_top
+```
+
+### 5. Preguntar al usuario qué frames usar
+
+Mostrar la imagen con líneas rojas (inicio) y verdes (fin) de cada sprite y preguntar cuáles quiere.
 
 ### 4. Actualizar Sprite.swift
 

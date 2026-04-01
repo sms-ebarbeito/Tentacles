@@ -9,7 +9,7 @@ struct MeetingReminder {
 }
 
 @MainActor
-class BuddyController: NSObject {
+class BuddyController: NSObject, NSWindowDelegate {
 
     // Ventana del pulpo
     private var octopusWindow: NSPanel!
@@ -36,6 +36,10 @@ class BuddyController: NSObject {
 
     // Recordatorios de meetings (evita duplicados por rec_id)
     private var meetingReminders: [Int: MeetingReminder] = [:]
+
+    // Panel debug
+    private var debugPanel: NSPanel?
+    private var debugLoopMode = false
 
     // Banner de meeting
     private var bannerWindow: NSPanel?
@@ -292,13 +296,15 @@ class BuddyController: NSObject {
         } else if isAlertMode {
             animFrame = (animFrame + 1) % alertSequence.count
             if animFrame == 0 { alertCycles += 1 }
-            if alertCycles >= alertCyclesTarget {
+            if alertCycles >= alertCyclesTarget && !debugLoopMode {
                 isAlertMode = false
                 alertCycles = 0
                 animTimer?.invalidate()
                 animTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
                     Task { @MainActor [weak self] in self?.stepAnimation() }
                 }
+            } else if debugLoopMode {
+                alertCycles = 0  // resetear para loop infinito
             }
             setFrame(alertSequence[animFrame])
         } else {
@@ -341,6 +347,104 @@ class BuddyController: NSObject {
         alertCycles = 0
         animTimer?.invalidate()
         startAnimation()
+    }
+
+    // MARK: - Panel debug
+
+    func showDebugPanel() {
+        debugPanel?.orderOut(nil)
+
+        let pw: CGFloat = 180
+        let ph: CGFloat = 52
+
+        let win = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: pw, height: ph),
+            styleMask: [.nonactivatingPanel, .fullSizeContentView, .borderless],
+            backing: .buffered, defer: false
+        )
+        win.level = .floating
+        win.isOpaque = false
+        win.backgroundColor = .clear
+        win.hasShadow = true
+        win.collectionBehavior = [.canJoinAllSpaces, .ignoresCycle]
+
+        let bg = NSView()
+        bg.wantsLayer = true
+        bg.layer?.backgroundColor = NSColor(white: 0.10, alpha: 0.93).cgColor
+        bg.layer?.cornerRadius = 10
+        bg.translatesAutoresizingMaskIntoConstraints = false
+
+        let stack = NSStackView()
+        stack.orientation = .horizontal
+        stack.spacing = 8
+        stack.translatesAutoresizingMaskIntoConstraints = false
+
+        func makeBtn(_ title: String, action: Selector) -> NSTextField {
+            let label = NSTextField(labelWithString: title)
+            label.font = .systemFont(ofSize: 11, weight: .semibold)
+            label.textColor = .white
+            label.alignment = .center
+            label.wantsLayer = true
+            label.layer?.backgroundColor = NSColor(red: 0.35, green: 0.20, blue: 0.55, alpha: 1).cgColor
+            label.layer?.cornerRadius = 5
+            label.isSelectable = false
+            // Usamos un click gesture
+            let click = NSClickGestureRecognizer(target: self, action: action)
+            label.addGestureRecognizer(click)
+            label.widthAnchor.constraint(equalToConstant: 46).isActive = true
+            label.heightAnchor.constraint(equalToConstant: 24).isActive = true
+            return label
+        }
+
+        stack.addArrangedSubview(makeBtn("normal", action: #selector(debugNormal)))
+        stack.addArrangedSubview(makeBtn("drag",   action: #selector(debugDrag)))
+        stack.addArrangedSubview(makeBtn("alert",  action: #selector(debugAlert)))
+
+        let container = NSView()
+        container.addSubview(bg)
+        container.addSubview(stack)
+        win.contentView = container
+
+        NSLayoutConstraint.activate([
+            bg.topAnchor.constraint(equalTo: container.topAnchor),
+            bg.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            bg.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            bg.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            stack.centerXAnchor.constraint(equalTo: container.centerXAnchor),
+            stack.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+        ])
+
+        if let of = octopusWindow?.frame, let screen = NSScreen.main {
+            let sf = screen.visibleFrame
+            let wx = min(of.minX + of.width/2 - pw/2, sf.maxX - pw - 4)
+            let wy = of.maxY + 8
+            win.setFrameOrigin(NSPoint(x: max(wx, sf.minX+4), y: wy))
+        }
+        win.delegate = self
+        win.makeKeyAndOrderFront(nil)
+        debugPanel = win
+    }
+
+    nonisolated func windowWillClose(_ notification: Notification) {
+        Task { @MainActor [weak self] in
+            self?.debugLoopMode = false
+            self?.stopCrazy()
+        }
+    }
+
+    @objc private func debugNormal() {
+        debugLoopMode = false
+        stopCrazy()
+    }
+
+    @objc private func debugDrag() {
+        debugLoopMode = true
+        triggerCrazy()
+    }
+
+    @objc private func debugAlert() {
+        debugLoopMode = true
+        triggerAlert(cycles: 999)
     }
 
     // MARK: - Banner de meeting

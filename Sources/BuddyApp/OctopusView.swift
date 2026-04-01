@@ -47,6 +47,10 @@ class OctopusView: NSView {
     private var windowOriginAtDragStart: NSPoint?
     private var didDrag = false
 
+    override func rightMouseDown(with event: NSEvent) {
+        controller?.showDebugPanel()
+    }
+
     override func mouseDown(with event: NSEvent) {
         dragStart = NSEvent.mouseLocation
         windowOriginAtDragStart = window?.frame.origin

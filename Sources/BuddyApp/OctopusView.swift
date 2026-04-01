@@ -1,7 +1,7 @@
 import Cocoa
 
 class OctopusView: NSView {
-    var currentRect: CGRect = Sprite.idle[0]
+    var currentFrame: SpriteFrame = Sprite.idle[0]
     private weak var controller: BuddyController?
 
     static let sheet: NSImage? = {
@@ -16,8 +16,8 @@ class OctopusView: NSView {
     }
     required init?(coder: NSCoder) { fatalError() }
 
-    func setFrame(_ rect: CGRect) {
-        currentRect = rect
+    func setFrame(_ frame: SpriteFrame) {
+        currentFrame = frame
         needsDisplay = true
     }
 
@@ -25,18 +25,21 @@ class OctopusView: NSView {
         guard let sheet = Self.sheet else { return }
 
         let s = Sprite.scale
-        let drawW = currentRect.width * s
-        let drawH = currentRect.height * s
-        // Centrado horizontalmente, anclado a la base de la ventana
-        let drawX = (bounds.width - drawW) / 2
-        let destRect = NSRect(x: drawX, y: 0, width: drawW, height: drawH)
+        let r = currentFrame.rect
+        let drawW = r.width * s
+        let drawH = r.height * s
+        // Centro el rect horizontalmente y corrijo por offset del pie en x
+        let drawX = (bounds.width - drawW) / 2 - currentFrame.ax * s
+        // Pie siempre en groundLevel desde el fondo de la ventana
+        let drawY = Sprite.groundLevel - currentFrame.ay * s
+        let destRect = NSRect(x: drawX, y: drawY, width: drawW, height: drawH)
 
         // NSImage tiene y=0 abajo; el PNG tiene y=0 arriba → invertir Y
         let flipped = CGRect(
-            x: currentRect.minX,
-            y: sheet.size.height - currentRect.maxY,
-            width: currentRect.width,
-            height: currentRect.height
+            x: r.minX,
+            y: sheet.size.height - r.maxY,
+            width: r.width,
+            height: r.height
         )
         sheet.draw(in: destRect, from: flipped, operation: .copy, fraction: 1.0)
     }

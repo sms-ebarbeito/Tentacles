@@ -39,6 +39,7 @@ class BuddyController: NSObject, NSWindowDelegate {
     private var idleStepCount = 0
     private static let maxJumpsLeft = 4
     private static let idleStepsBeforeJump = 16  // ~8s a 0.5s por frame
+    private static let idleStepsBeforeBoring = 30  // ~15s a 0.5s por frame
 
     // Recordatorios de meetings (evita duplicados por rec_id)
     private var meetingReminders: [Int: MeetingReminder] = [:]
@@ -319,7 +320,12 @@ class BuddyController: NSObject, NSWindowDelegate {
             idleStepCount += 1
             if idleStepCount >= Self.idleStepsBeforeJump {
                 idleStepCount = 0
-                triggerIdleJump()
+                // 1 de cada 3 veces hace boring, el resto salta
+                if Int.random(in: 0..<3) == 0 {
+                    triggerBoring()
+                } else {
+                    triggerIdleJump()
+                }
             }
         }
     }
@@ -366,7 +372,11 @@ class BuddyController: NSObject, NSWindowDelegate {
                     self.animFrame = 0
                     self.alertCycles += 1
                     if self.alertCycles >= self.alertCyclesTarget && !self.debugLoopMode {
-                        self.stopCrazy(); return
+                        self.isAlertMode = false
+                        self.alertCycles = 0
+                        self.animTimer?.invalidate()
+                        self.startAnimation()
+                        return
                     }
                 }
                 self.setFrame(Sprite.boring[self.animFrame])

@@ -113,6 +113,44 @@ enum Sprite {
         SpriteFrame(643, 664,  36,  97, ax:  0, ay: 14),
     ]
 
+    // JumpRight: band_02 (11 frames)
+    static let jumpRight: [SpriteFrame] = [
+        SpriteFrame(  0, 181, 46, 33, ax:  -5, ay: 4),
+        SpriteFrame( 46, 183, 47, 31, ax:   1, ay: 4),
+        SpriteFrame( 93, 173, 57, 41, ax:  -7, ay: 4),
+        SpriteFrame(150, 175, 58, 39, ax:  -9, ay: 4),
+        SpriteFrame(208, 174, 56, 40, ax:  -8, ay: 4),
+        SpriteFrame(264, 160, 54, 54, ax:  -7, ay: 4),
+        SpriteFrame(318, 161, 60, 53, ax:  -8, ay: 4),
+        SpriteFrame(440, 159, 76, 55, ax:  16, ay: 4),
+        SpriteFrame(516, 170, 80, 44, ax:  16, ay: 4),
+        SpriteFrame(596, 176, 60, 38, ax:   6, ay: 4),
+        SpriteFrame(656, 181, 50, 33, ax:  -3, ay: 4),
+    ]
+
+    // JumpLeft: mismos frames que jumpRight, se dibuja con flip horizontal
+    static let jumpLeft: [SpriteFrame] = jumpRight
+
+    // Boring: band_12 (16 frames)
+    static let boring: [SpriteFrame] = [
+        SpriteFrame(  0, 1104,  68, 51, ax:  -3, ay: 4),
+        SpriteFrame( 68, 1104,  68, 51, ax:   4, ay: 4),
+        SpriteFrame(136, 1104,  52, 51, ax:   6, ay: 4),
+        SpriteFrame(188, 1111,  48, 44, ax:   2, ay: 4),
+        SpriteFrame(236, 1111,  44, 44, ax:   0, ay: 4),
+        SpriteFrame(280, 1111,  45, 44, ax:   0, ay: 4),
+        SpriteFrame(325, 1111,  47, 44, ax:   0, ay: 4),
+        SpriteFrame(372, 1104,  48, 51, ax:   2, ay: 4),
+        SpriteFrame(420, 1100,  40, 55, ax:   2, ay: 4),
+        SpriteFrame(460, 1127,  58, 28, ax:   3, ay: 4),
+        SpriteFrame(518, 1129,  52, 26, ax:   4, ay: 4),
+        SpriteFrame(570, 1099,  46, 56, ax:   3, ay: 4),
+        SpriteFrame(616, 1091,  44, 64, ax:   0, ay: 4),
+        SpriteFrame(660, 1099,  48, 56, ax:   0, ay: 4),
+        SpriteFrame(708, 1104,  48, 51, ax:   0, ay: 4),
+        SpriteFrame(756, 1099,  44, 56, ax:   0, ay: 4),
+    ]
+
     // Squish: band_04 (no usado en animaciones)
     static let squish = CGRect(x: 2, y: 315, width: 23, height: 17)
 }

@@ -122,6 +122,7 @@ enum Sprite {
         SpriteFrame(208, 174, 56, 40, ax:  -8, ay: 4),
         SpriteFrame(264, 160, 54, 54, ax:  -7, ay: 4),
         SpriteFrame(318, 161, 60, 53, ax:  -8, ay: 4),
+        SpriteFrame(378, 159, 62, 55, ax:   0, ay: 4),
         SpriteFrame(440, 159, 76, 55, ax:  16, ay: 4),
         SpriteFrame(516, 170, 80, 44, ax:  16, ay: 4),
         SpriteFrame(596, 176, 60, 38, ax:   6, ay: 4),

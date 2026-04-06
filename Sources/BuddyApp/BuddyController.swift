@@ -433,8 +433,8 @@ class BuddyController: NSObject, NSWindowDelegate {
                     }
                 }
                 self.setFrame(Sprite.jumpLeft[self.animFrame])
-                if self.animFrame >= 7, let win = self.octopusWindow, let screen = NSScreen.main {
-                    let movingFrames = CGFloat(Sprite.jumpLeft.count - 7)
+                if self.animFrame >= 6, let win = self.octopusWindow, let screen = NSScreen.main {
+                    let movingFrames = CGFloat(Sprite.jumpLeft.count - 6)
                     let step: CGFloat = 80.0 / movingFrames
                     let newX = max(win.frame.origin.x - step, screen.visibleFrame.minX)
                     win.setFrameOrigin(NSPoint(x: newX, y: win.frame.origin.y))
@@ -466,8 +466,8 @@ class BuddyController: NSObject, NSWindowDelegate {
                 }
                 self.setFrame(Sprite.jumpRight[self.animFrame])
                 // Mover la ventana a la derecha: 80px distribuidos en los frames a partir del 3
-                if self.animFrame >= 7, let win = self.octopusWindow, let screen = NSScreen.main {
-                    let movingFrames = CGFloat(Sprite.jumpRight.count - 7)
+                if self.animFrame >= 6, let win = self.octopusWindow, let screen = NSScreen.main {
+                    let movingFrames = CGFloat(Sprite.jumpRight.count - 6)
                     let step: CGFloat = 80.0 / movingFrames
                     let newX = min(win.frame.origin.x + step, screen.visibleFrame.maxX - win.frame.width)
                     win.setFrameOrigin(NSPoint(x: newX, y: win.frame.origin.y))

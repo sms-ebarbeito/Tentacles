@@ -494,7 +494,7 @@ class BuddyController: NSObject, NSWindowDelegate {
     func showDebugPanel() {
         debugPanel?.orderOut(nil)
 
-        let pw: CGFloat = 348
+        let pw: CGFloat = 380
         let ph: CGFloat = 52
 
         let win = NSPanel(
@@ -543,6 +543,10 @@ class BuddyController: NSObject, NSWindowDelegate {
         stack.addArrangedSubview(makeBtn("jump←",  action: #selector(debugJumpLeft)))
         stack.addArrangedSubview(makeBtn("boring", action: #selector(debugBoring)))
 
+        let closeBtn = makeBtn("✕", action: #selector(closeDebugPanel))
+        closeBtn.layer?.backgroundColor = NSColor(red: 0.5, green: 0.15, blue: 0.15, alpha: 1).cgColor
+        stack.addArrangedSubview(closeBtn)
+
         let container = NSView()
         container.addSubview(bg)
         container.addSubview(stack)
@@ -573,6 +577,12 @@ class BuddyController: NSObject, NSWindowDelegate {
             self?.debugLoopMode = false
             self?.stopCrazy()
         }
+    }
+
+    @objc private func closeDebugPanel() {
+        debugLoopMode = false
+        stopCrazy()
+        debugPanel?.orderOut(nil)
     }
 
     @objc private func debugNormal() {

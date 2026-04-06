@@ -34,6 +34,12 @@ class BuddyController: NSObject, NSWindowDelegate {
     private var alertCyclesTarget = 2
     private var crazyMode = false
 
+    // Saltos desde home (esquina derecha): 0 = home, +N = N saltos a la izquierda
+    private var jumpOffset = 0
+    private var idleStepCount = 0
+    private static let maxJumpsLeft = 4
+    private static let idleStepsBeforeJump = 16  // ~8s a 0.5s por frame
+
     // Recordatorios de meetings (evita duplicados por rec_id)
     private var meetingReminders: [Int: MeetingReminder] = [:]
 
@@ -310,6 +316,11 @@ class BuddyController: NSObject, NSWindowDelegate {
         } else {
             animFrame = (animFrame + 1) % idleSequence.count
             setFrame(idleSequence[animFrame])
+            idleStepCount += 1
+            if idleStepCount >= Self.idleStepsBeforeJump {
+                idleStepCount = 0
+                triggerIdleJump()
+            }
         }
     }
 
@@ -340,11 +351,130 @@ class BuddyController: NSObject, NSWindowDelegate {
         }
     }
 
+    func triggerBoring() {
+        crazyMode = false
+        isAlertMode = true
+        alertCyclesTarget = debugLoopMode ? 999 : 1
+        alertCycles = 0
+        animFrame = 0
+        animTimer?.invalidate()
+        animTimer = Timer.scheduledTimer(withTimeInterval: 0.12, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.animFrame += 1
+                if self.animFrame >= Sprite.boring.count {
+                    self.animFrame = 0
+                    self.alertCycles += 1
+                    if self.alertCycles >= self.alertCyclesTarget && !self.debugLoopMode {
+                        self.stopCrazy(); return
+                    }
+                }
+                self.setFrame(Sprite.boring[self.animFrame])
+            }
+        }
+        setFrame(Sprite.boring[0])
+    }
+
+    private func triggerIdleJump() {
+        // Decidir dirección según posición actual
+        let goLeft: Bool
+        if jumpOffset <= 0 {
+            goLeft = true
+        } else if jumpOffset >= Self.maxJumpsLeft {
+            goLeft = false
+        } else {
+            goLeft = Bool.random()
+        }
+        if goLeft {
+            triggerJumpLeft(idle: true)
+        } else {
+            triggerJumpRight(idle: true)
+        }
+    }
+
+    private func finishJump(wentLeft: Bool) {
+        if wentLeft { jumpOffset += 1 } else { jumpOffset = max(0, jumpOffset - 1) }
+        octopusView.mirrored = false
+        isAlertMode = false
+        alertCycles = 0
+        animTimer?.invalidate()
+        startAnimation()
+    }
+
+    func triggerJumpLeft() { triggerJumpLeft(idle: false) }
+    func triggerJumpLeft(idle: Bool) {
+        octopusView.mirrored = true
+        crazyMode = false
+        isAlertMode = true
+        alertCyclesTarget = debugLoopMode ? 999 : 1
+        alertCycles = 0
+        animFrame = 0
+        animTimer?.invalidate()
+        animTimer = Timer.scheduledTimer(withTimeInterval: 0.12, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.animFrame += 1
+                if self.animFrame >= Sprite.jumpLeft.count {
+                    self.animFrame = 0
+                    self.alertCycles += 1
+                    if self.alertCycles >= self.alertCyclesTarget && !self.debugLoopMode {
+                        if idle { self.finishJump(wentLeft: true) } else { self.stopCrazy() }
+                        return
+                    }
+                }
+                self.setFrame(Sprite.jumpLeft[self.animFrame])
+                if self.animFrame >= 7, let win = self.octopusWindow, let screen = NSScreen.main {
+                    let movingFrames = CGFloat(Sprite.jumpLeft.count - 7)
+                    let step: CGFloat = 80.0 / movingFrames
+                    let newX = max(win.frame.origin.x - step, screen.visibleFrame.minX)
+                    win.setFrameOrigin(NSPoint(x: newX, y: win.frame.origin.y))
+                }
+            }
+        }
+        setFrame(Sprite.jumpLeft[0])
+    }
+
+    func triggerJumpRight() { triggerJumpRight(idle: false) }
+    func triggerJumpRight(idle: Bool) {
+        crazyMode = false
+        isAlertMode = true
+        alertCyclesTarget = debugLoopMode ? 999 : 1
+        alertCycles = 0
+        animFrame = 0
+        animTimer?.invalidate()
+        animTimer = Timer.scheduledTimer(withTimeInterval: 0.12, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.animFrame += 1
+                if self.animFrame >= Sprite.jumpRight.count {
+                    self.animFrame = 0
+                    self.alertCycles += 1
+                    if self.alertCycles >= self.alertCyclesTarget && !self.debugLoopMode {
+                        if idle { self.finishJump(wentLeft: false) } else { self.stopCrazy() }
+                        return
+                    }
+                }
+                self.setFrame(Sprite.jumpRight[self.animFrame])
+                // Mover la ventana a la derecha: 80px distribuidos en los frames a partir del 3
+                if self.animFrame >= 7, let win = self.octopusWindow, let screen = NSScreen.main {
+                    let movingFrames = CGFloat(Sprite.jumpRight.count - 7)
+                    let step: CGFloat = 80.0 / movingFrames
+                    let newX = min(win.frame.origin.x + step, screen.visibleFrame.maxX - win.frame.width)
+                    win.setFrameOrigin(NSPoint(x: newX, y: win.frame.origin.y))
+                }
+            }
+        }
+        setFrame(Sprite.jumpRight[0])
+    }
+
     func stopCrazy() {
         guard crazyMode || isAlertMode else { return }
         crazyMode = false
         isAlertMode = false
         alertCycles = 0
+        jumpOffset = 0
+        idleStepCount = 0
+        octopusView.mirrored = false
         animTimer?.invalidate()
         startAnimation()
     }
@@ -354,7 +484,7 @@ class BuddyController: NSObject, NSWindowDelegate {
     func showDebugPanel() {
         debugPanel?.orderOut(nil)
 
-        let pw: CGFloat = 180
+        let pw: CGFloat = 348
         let ph: CGFloat = 52
 
         let win = NSPanel(
@@ -399,6 +529,9 @@ class BuddyController: NSObject, NSWindowDelegate {
         stack.addArrangedSubview(makeBtn("normal", action: #selector(debugNormal)))
         stack.addArrangedSubview(makeBtn("drag",   action: #selector(debugDrag)))
         stack.addArrangedSubview(makeBtn("alert",  action: #selector(debugAlert)))
+        stack.addArrangedSubview(makeBtn("jump",   action: #selector(debugJump)))
+        stack.addArrangedSubview(makeBtn("jump←",  action: #selector(debugJumpLeft)))
+        stack.addArrangedSubview(makeBtn("boring", action: #selector(debugBoring)))
 
         let container = NSView()
         container.addSubview(bg)
@@ -445,6 +578,21 @@ class BuddyController: NSObject, NSWindowDelegate {
     @objc private func debugAlert() {
         debugLoopMode = true
         triggerAlert(cycles: 999)
+    }
+
+    @objc private func debugJump() {
+        debugLoopMode = true
+        triggerJumpRight()
+    }
+
+    @objc private func debugJumpLeft() {
+        debugLoopMode = true
+        triggerJumpLeft()
+    }
+
+    @objc private func debugBoring() {
+        debugLoopMode = true
+        triggerBoring()
     }
 
     // MARK: - Banner de meeting

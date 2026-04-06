@@ -2,6 +2,7 @@ import Cocoa
 
 class OctopusView: NSView {
     var currentFrame: SpriteFrame = Sprite.idle[0]
+    var mirrored: Bool = false
     private weak var controller: BuddyController?
 
     static let sheet: NSImage? = {
@@ -41,7 +42,18 @@ class OctopusView: NSView {
             width: r.width,
             height: r.height
         )
-        sheet.draw(in: destRect, from: flipped, operation: .copy, fraction: 1.0)
+        if mirrored {
+            guard let ctx = NSGraphicsContext.current?.cgContext else { return }
+            ctx.saveGState()
+            ctx.translateBy(x: bounds.width, y: 0)
+            ctx.scaleBy(x: -1, y: 1)
+            let mirroredDest = NSRect(x: bounds.width - destRect.maxX, y: destRect.minY,
+                                     width: destRect.width, height: destRect.height)
+            sheet.draw(in: mirroredDest, from: flipped, operation: .copy, fraction: 1.0)
+            ctx.restoreGState()
+        } else {
+            sheet.draw(in: destRect, from: flipped, operation: .copy, fraction: 1.0)
+        }
     }
 
     // MARK: - Mouse

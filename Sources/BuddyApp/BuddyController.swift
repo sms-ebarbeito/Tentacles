@@ -394,19 +394,20 @@ class BuddyController: NSObject, NSWindowDelegate {
     }
 
     private func triggerIdleJump() {
-        // Decidir dirección según posición actual
-        let goLeft: Bool
-        if jumpOffset <= 0 {
-            goLeft = true
-        } else if jumpOffset >= Self.maxJumpsLeft {
-            goLeft = false
-        } else {
-            goLeft = Bool.random()
+        // Probabilidad de ir derecha aumenta según qué tan lejos está de casa
+        // offset 0: 10% derecha, 1: 30%, 2: 55%, 3: 75%, 4+: 100%
+        let rightChance: Double
+        switch jumpOffset {
+        case 0:      rightChance = 0.10
+        case 1:      rightChance = 0.30
+        case 2:      rightChance = 0.55
+        case 3:      rightChance = 0.75
+        default:     rightChance = 1.0
         }
-        if goLeft {
-            triggerJumpLeft(idle: true)
-        } else {
+        if Double.random(in: 0..<1) < rightChance {
             triggerJumpRight(idle: true)
+        } else {
+            triggerJumpLeft(idle: true)
         }
     }
 
@@ -631,7 +632,11 @@ class BuddyController: NSObject, NSWindowDelegate {
 
     func showClaudeBubble(message: String) {
         claudeBubble?.orderOut(nil)
-        triggerAlert(cycles: 999)
+        triggerAlert(cycles: 3)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 12) { [weak self] in
+            self?.claudeBubble?.orderOut(nil)
+            self?.stopCrazy()
+        }
 
         let bw: CGFloat = 280
         let padding: CGFloat = 12

@@ -44,6 +44,12 @@ class BuddyController: NSObject, NSWindowDelegate {
     // Recordatorios de meetings (evita duplicados por rec_id)
     private var meetingReminders: [Int: MeetingReminder] = [:]
 
+    // Servidor HTTP
+    private var server = BuddyServer()
+
+    // Globo de Claude
+    private var claudeBubble: NSPanel?
+
     // Panel debug
     private var debugPanel: NSPanel?
     private var debugLoopMode = false
@@ -58,6 +64,8 @@ class BuddyController: NSObject, NSWindowDelegate {
 
     func start() {
         log("Buddy arrancó")
+        server.controller = self
+        server.start()
         buildOctopusWindow()
         buildNotificationPanel()
         startAnimation()
@@ -482,7 +490,6 @@ class BuddyController: NSObject, NSWindowDelegate {
         crazyMode = false
         isAlertMode = false
         alertCycles = 0
-        jumpOffset = 0
         idleStepCount = 0
         octopusView.mirrored = false
         animTimer?.invalidate()
@@ -579,6 +586,11 @@ class BuddyController: NSObject, NSWindowDelegate {
         }
     }
 
+    @objc private func closeClaudeBubble() {
+        claudeBubble?.orderOut(nil)
+        stopCrazy()
+    }
+
     @objc private func closeDebugPanel() {
         debugLoopMode = false
         stopCrazy()
@@ -613,6 +625,92 @@ class BuddyController: NSObject, NSWindowDelegate {
     @objc private func debugBoring() {
         debugLoopMode = true
         triggerBoring()
+    }
+
+    // MARK: - Globo de Claude
+
+    func showClaudeBubble(message: String) {
+        claudeBubble?.orderOut(nil)
+        triggerAlert(cycles: 999)
+
+        let bw: CGFloat = 280
+        let padding: CGFloat = 12
+        let font = NSFont.systemFont(ofSize: 12)
+
+        // Calcular altura según el texto
+        let maxW = bw - padding * 2 - 20  // 20 para el botón ✕
+        let attrs: [NSAttributedString.Key: Any] = [.font: font]
+        let textH = (message as NSString).boundingRect(
+            with: CGSize(width: maxW, height: 9999),
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
+            attributes: attrs
+        ).height
+        let bh = max(52, textH + padding * 2)
+
+        let win = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: bw, height: bh),
+            styleMask: [.nonactivatingPanel, .fullSizeContentView, .borderless],
+            backing: .buffered, defer: false
+        )
+        win.level = .floating
+        win.isOpaque = false
+        win.backgroundColor = .clear
+        win.hasShadow = true
+        win.collectionBehavior = [.canJoinAllSpaces, .ignoresCycle]
+        win.isMovableByWindowBackground = true
+
+        let bg = NSView()
+        bg.wantsLayer = true
+        bg.layer?.backgroundColor = NSColor(red: 0.10, green: 0.18, blue: 0.30, alpha: 0.96).cgColor
+        bg.layer?.cornerRadius = 10
+        bg.translatesAutoresizingMaskIntoConstraints = false
+
+        let label = NSTextField(wrappingLabelWithString: message)
+        label.font = font
+        label.textColor = .white
+        label.translatesAutoresizingMaskIntoConstraints = false
+
+        let closeBtn = NSButton(title: "✕", target: nil, action: nil)
+        closeBtn.bezelStyle = .inline
+        closeBtn.isBordered = false
+        closeBtn.font = .systemFont(ofSize: 11, weight: .bold)
+        closeBtn.contentTintColor = NSColor.white.withAlphaComponent(0.6)
+        closeBtn.translatesAutoresizingMaskIntoConstraints = false
+
+        let container = NSView()
+        container.addSubview(bg)
+        container.addSubview(label)
+        container.addSubview(closeBtn)
+        win.contentView = container
+
+        closeBtn.target = self
+        closeBtn.action = #selector(closeClaudeBubble)
+
+        NSLayoutConstraint.activate([
+            bg.topAnchor.constraint(equalTo: container.topAnchor),
+            bg.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            bg.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            bg.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+
+            closeBtn.topAnchor.constraint(equalTo: container.topAnchor, constant: 6),
+            closeBtn.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
+            closeBtn.widthAnchor.constraint(equalToConstant: 16),
+            closeBtn.heightAnchor.constraint(equalToConstant: 16),
+
+            label.topAnchor.constraint(equalTo: container.topAnchor, constant: padding),
+            label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: padding),
+            label.trailingAnchor.constraint(equalTo: closeBtn.leadingAnchor, constant: -4),
+            label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -padding),
+        ])
+
+        if let of = octopusWindow?.frame, let screen = NSScreen.main {
+            let sf = screen.visibleFrame
+            let wx = min(of.minX + of.width / 2 - bw / 2, sf.maxX - bw - 4)
+            let wy = of.maxY + 8
+            win.setFrameOrigin(NSPoint(x: max(wx, sf.minX + 4), y: wy))
+        }
+        win.makeKeyAndOrderFront(nil)
+        claudeBubble = win
     }
 
     // MARK: - Banner de meeting

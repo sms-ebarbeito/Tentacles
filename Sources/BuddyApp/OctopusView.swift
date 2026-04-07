@@ -63,7 +63,20 @@ class OctopusView: NSView {
     private var didDrag = false
 
     override func rightMouseDown(with event: NSEvent) {
+        let menu = NSMenu()
+        menu.addItem(withTitle: "Debug Panel", action: #selector(openDebugPanel), keyEquivalent: "")
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(withTitle: "Exit", action: #selector(exitApp), keyEquivalent: "")
+        for item in menu.items { item.target = self }
+        NSMenu.popUpContextMenu(menu, with: event, for: self)
+    }
+
+    @objc private func openDebugPanel() {
         controller?.showDebugPanel()
+    }
+
+    @objc private func exitApp() {
+        NSApplication.shared.terminate(nil)
     }
 
     override func mouseDown(with event: NSEvent) {

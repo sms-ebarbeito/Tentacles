@@ -20,7 +20,7 @@ let package = Package(
                 .linkedFramework("Cocoa"),
             ]
         ),
-        .executableTarget(
+        .testTarget(
             name: "BuddyCoreTests",
             dependencies: ["BuddyCore"],
             path: "Tests/BuddyCoreTests"

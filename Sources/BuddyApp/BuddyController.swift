@@ -34,8 +34,6 @@ class BuddyController: NSObject, NSWindowDelegate {
     private var alertCyclesTarget = 2
     private var crazyMode = false
 
-    // Saltos desde home (esquina derecha): 0 = home, +N = N saltos a la izquierda
-    private var jumpOffset = 0
     private var idleStepCount = 0
     private static let maxJumpsLeft = 4
     private static let idleStepsBeforeJump = 16  // ~8s a 0.5s por frame
@@ -394,15 +392,19 @@ class BuddyController: NSObject, NSWindowDelegate {
     }
 
     private func triggerIdleJump() {
-        // Probabilidad de ir derecha aumenta según qué tan lejos está de casa
-        // offset 0: 10% derecha, 1: 30%, 2: 55%, 3: 75%, 4+: 100%
+        // Probabilidad de ir derecha basada en posición real en pantalla.
+        // Cuanto más a la izquierda está, más tiende a volver a la derecha.
         let rightChance: Double
-        switch jumpOffset {
-        case 0:      rightChance = 0.10
-        case 1:      rightChance = 0.30
-        case 2:      rightChance = 0.55
-        case 3:      rightChance = 0.75
-        default:     rightChance = 1.0
+        if let screen = NSScreen.main, let win = octopusWindow {
+            let sf = screen.visibleFrame
+            let screenW = sf.width
+            // posición relativa 0.0 (extremo izquierdo) … 1.0 (extremo derecho)
+            let relX = (win.frame.minX - sf.minX) / screenW
+            // En extremo derecho (relX~1): 10% derecha (ya está en casa, puede explorar)
+            // En extremo izquierdo (relX~0): 95% derecha (volver a casa)
+            rightChance = 0.95 - relX * 0.85
+        } else {
+            rightChance = 0.50
         }
         if Double.random(in: 0..<1) < rightChance {
             triggerJumpRight(idle: true)
@@ -412,7 +414,6 @@ class BuddyController: NSObject, NSWindowDelegate {
     }
 
     private func finishJump(wentLeft: Bool) {
-        if wentLeft { jumpOffset += 1 } else { jumpOffset = max(0, jumpOffset - 1) }
         octopusView.mirrored = false
         isAlertMode = false
         alertCycles = 0

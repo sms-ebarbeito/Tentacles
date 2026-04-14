@@ -1,0 +1,58 @@
+./
+.build/
+.claude/
+  settings.local.json  [7c02390cad45bf54ca4463f29e2308e6]
+.DS_Store  [ec3ba4cdba84ebed33a05822e309bf9f]
+.git/
+.gitignore  [0dc6a4be55f31cae3020076d94c38e54]
+buddy.swift  [2da215e459c4726a135c197c9ff10f02]
+BuddyApp.app/
+  Contents/
+    Info.plist  [dc7a9a5d2be376984b57eb3894e50c7f]
+    MacOS/
+      BuddyApp  [3a3d8e3c4b71757f82d856c7425c8bd9]
+    Resources/
+      AppIcon.icns  [f5ddb70edc117cb16a0b0b0058bd0828]
+      Buddy_BuddyApp.bundle/
+        AppIcon.icns  [f5ddb70edc117cb16a0b0b0058bd0828]
+        tentacles-sprites.png  [917557a10897974490f7bfb85281853c]
+      tentacles-sprites.png  [917557a10897974490f7bfb85281853c]
+build-app.sh  [d24a81534932cf4ed12f57bf3e90a617]
+main.txt  [8b7c23dd5a1b69f68bb0e6a8d6efa617]
+memory/
+  MEMORY.md  [a6728916175e2108e568d25ba5a94836]
+  project_structure.md  [9f38d6bd5fd992f615ebb2ae9f78b562]
+  tool_tree_hash.md  [028f6c59cd727cd253e48471ab80d190]
+Package.swift  [3258bae1a8c02785523fb6809152bc5b]
+README.md  [0971789da5f2b1ed4f5b202e966bf736]
+Sources/
+  .DS_Store  [fadefa080c7b48b47d381eeadeb0c453]
+  BuddyApp/
+    .claude/
+      settings.local.json  [6617fd6d7d110502b1b3922dcdc3c006]
+    .DS_Store  [8fdede257a76cdc0833d92f017fd892a]
+    BuddyController.swift  [4b09c4b1c726854268e5814599a5737a]
+    Logger.swift  [92e747c1696a99c29978dd1d83a8f482]
+    main.swift  [7fee68a572692b25a389f200a7855610]
+    NotificationReader.swift  [0f50164d236bce979847ed914b48ccc3]
+    NotificationRow.swift  [09d0a296294a197e73b49fef6199da8c]
+    OctopusView.swift  [c4e5b613cf4e32f0fe554f0d8f4ea862]
+    Resources/
+      AppIcon.icns  [f5ddb70edc117cb16a0b0b0058bd0828]
+      tentacles-sprites.png  [917557a10897974490f7bfb85281853c]
+    Sprite.swift  [8051bd2817d78a473eac6d88f7452ad7]
+  BuddyCore/
+    AppNotification.swift  [96c7b27047d9b98d4684f8bea99ef0f4]
+    BuddyCore.swift  [d90f34f0aa7f7d56622caac0a41d33d4]
+    MeetingDateParser.swift  [256106ea33084769115b78b3a52d64e5]
+    NotificationFilter.swift  [9578945991ec9a06cdd00fd3a46b8ba1]
+    NotificationParser.swift  [d2268ce55decd0132bd5dd6358ba6917]
+Tests/
+  .DS_Store  [3d5eee81984c63e0a1f65f17cf3702c4]
+  BuddyCoreTests/
+    main.swift  [61fb12c4723a0d29d12a93aa3e454437]
+    MeetingDateParserTests.swift  [0f83e5b4dcf7a30fb9a6bb6fd046464a]
+    NotificationFilterTests.swift  [1145fc8afa35acc06e92fc1c3dd30346]
+    NotificationParserTests.swift  [2e72fadc82741ef06f0fd85440bd813d]
+    TestRunner.swift  [c0e1ce5c6c50e6813cc7cb5fa14de8e4]
+tree-hash.sh  [32cb2616b433733d21393ac96cbb63d0]
